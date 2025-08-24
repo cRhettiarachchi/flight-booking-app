@@ -1,0 +1,12 @@
+[
+  { "code": "NRT", "city": "Tokyo", "name": "Narita Intl" },
+  { "code": "HND", "city": "Tokyo", "name": "Haneda" },
+  { "code": "KIX", "city": "Osaka", "name": "Kansai Intl" },
+  { "code": "ITM", "city": "Osaka", "name": "Itami" },
+  { "code": "CTS", "city": "Sapporo", "name": "New Chitose" },
+  { "code": "CMB", "city": "Colombo", "name": "Bandaranaike" },
+  { "code": "SIN", "city": "Singapore", "name": "Changi" },
+  { "code": "BKK", "city": "Bangkok", "name": "Suvarnabhumi" },
+  { "code": "LHR", "city": "London", "name": "Heathrow" },
+  { "code": "SFO", "city": "San Francisco", "name": "International" }
+]
