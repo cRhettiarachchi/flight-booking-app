@@ -1,6 +1,6 @@
 import type { TPaginatedDataResponse } from './TResponse'
 
-export type TFlight = {
+export interface TFlight {
   id: string
   flightNumber: string
   airline: string
@@ -16,7 +16,7 @@ export type TFlight = {
   flightClass: string
 }
 
-export type TFlightPair = {
+export interface TFlightPair {
   outbound: TFlight
   return: TFlight
   totalPrice: number

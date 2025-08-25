@@ -1,16 +1,13 @@
 import { FlightSearchBar } from '~/flightSearch/flightSearch'
 import type { Route } from './+types/flights'
-import type {
-  TFlight,
-  TFlightPaginatedResponse,
-  TFlightPair,
-} from '~/lib/types/TFlightsResponse'
-import { fetchApi } from '~/lib/api/fetch'
+import type { TFlight, TFlightPair } from '~/lib/types'
+import { flightService } from '~/lib/services/flightService'
 import { FlightDetailCard } from '~/components/flightDetailCard'
 import { useNavigate } from 'react-router'
 import { FlightCardWrapper } from '~/components/flightCardWrapper'
 import { PaginationComponent } from '~/components/paginationComponent'
 import { fromYYMMDD, yyMMddToISO } from '~/lib/utils'
+import { SortingMenu } from '~/components/sortFlights'
 
 export const loader = async ({
   params: { source, destination, dep, arr },
@@ -21,20 +18,27 @@ export const loader = async ({
   const searchParams = url.searchParams
   console.log('Search params:', searchParams.get('page'))
 
-  const limit = searchParams.get('limit') || '10'
-  const page = searchParams.get('page') || '1'
+  const limit = Number(searchParams.get('limit')) || 10
+  const page = Number(searchParams.get('page')) || 1
 
   try {
-    const base = `http://localhost:3001/api/flights/search?source=${source}&destination=${destination}&departure=${yyMMddToISO(dep)}&limit=${limit}&page=${page}`
-    let path = arr ? `${base}&return=${yyMMddToISO(arr)}` : base
-    const data = await fetchApi<TFlightPaginatedResponse>(path)
+    const searchParams = {
+      departureAirport: source.toUpperCase(),
+      arrivalAirport: destination.toUpperCase(),
+      departureDate: yyMMddToISO(dep),
+      ...(arr && { arrivalDate: yyMMddToISO(arr) }),
+      page,
+      limit,
+    }
 
+    const data = await flightService.searchFlightResults(searchParams)
     console.log('Fetched flight data:', data)
 
     return { ...data, params: { source, destination, dep, arr } }
   } catch (error) {
     console.log(error)
     console.error('Error fetching flights:', error)
+    throw error
   }
 }
 
@@ -99,11 +103,20 @@ const Flights = ({ loaderData }: Route.ComponentProps) => {
   return (
     <>
       <FlightSearchBar
-        from={source}
-        to={destination}
-        depart={fromYYMMDD(dep)}
-        return={arr ? fromYYMMDD(arr) : undefined}
+        departureAirport={source}
+        arrivalAirport={destination}
+        departureDate={fromYYMMDD(dep)}
+        arrivalDate={arr ? fromYYMMDD(arr) : undefined}
       />
+
+      <div className="w-full flex justify-center mt-4">
+        <div className="w-full max-w-6xl flex justify-end px-4">
+          <SortingMenu
+            value={'price-asc'}
+            onChange={(value) => console.log(value)}
+          />
+        </div>
+      </div>
 
       <div className="w-full flex justify-center mt-8">
         <div className="w-full max-w-6xl">
