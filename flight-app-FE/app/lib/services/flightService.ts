@@ -23,6 +23,14 @@ const buildFlightSearchQuery = (params: TFlightSearchParams): string => {
   searchParams.set('page', String(params.page || 1))
   searchParams.set('limit', String(params.limit || 10))
   
+  if (params.sortBy) {
+    searchParams.set('sortBy', params.sortBy)
+  }
+  
+  if (params.sortOrder) {
+    searchParams.set('sortOrder', params.sortOrder)
+  }
+  
   return searchParams.toString()
 }
 

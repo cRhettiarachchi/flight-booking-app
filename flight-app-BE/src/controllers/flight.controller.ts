@@ -14,6 +14,8 @@ const searchFlights = async (
       return: returnDate,
       limit = '10',
       page = '1',
+      sortBy,
+      sortOrder,
     } = req.query
 
     // Convert string query parameters to numbers
@@ -27,6 +29,8 @@ const searchFlights = async (
       return: returnDate,
       limit: numericLimit,
       page: numericPage,
+      sortBy,
+      sortOrder,
     })
 
     console.log('Search result:', result)

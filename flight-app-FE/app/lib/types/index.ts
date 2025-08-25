@@ -5,9 +5,9 @@ export * from './TFlightsResponse'
 export * from './TResponse'
 
 // Import and re-export schema-derived types
-import { 
-  flightSearchFormSchema, 
-  flightSearchQuerySchema 
+import {
+  flightSearchFormSchema,
+  flightSearchQuerySchema,
 } from '../schemas/flightSearchSchema'
 
 export type TFlightSearchFormData = z.infer<typeof flightSearchFormSchema>
@@ -20,6 +20,10 @@ export type TApiResponse<T = unknown> = {
   message?: string
 }
 
+export type TFlightSortOption = 'price' | 'departure' | 'arrival'
+
+export type TFlightSortOrder = 'asc' | 'desc'
+
 export type TFlightSearchParams = {
   departureAirport: string
   arrivalAirport: string
@@ -27,6 +31,8 @@ export type TFlightSearchParams = {
   arrivalDate?: string
   page?: number
   limit?: number
+  sortBy?: TFlightSortOption
+  sortOrder?: TFlightSortOrder
 }
 
 export type TPaginationInfo = {

@@ -8,6 +8,8 @@ export const flightQuerySchema = z.object({
   return: z.string().min(10).max(10).optional(), // Return date (YYYY-MM-DD format) - if provided, it's round-trip
   limit: z.coerce.number().int().min(1).max(100).optional(), // Results per page
   page: z.coerce.number().int().min(0).optional(), // Page number
+  sortBy: z.enum(['price', 'departure', 'arrival']).optional(), // Sort field
+  sortOrder: z.enum(['asc', 'desc']).optional(), // Sort order
 })
 
 export type TFlightQueryParams = z.infer<typeof flightQuerySchema>

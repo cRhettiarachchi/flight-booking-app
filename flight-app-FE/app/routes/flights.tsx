@@ -1,13 +1,18 @@
 import { FlightSearchBar } from '~/flightSearch/flightSearch'
 import type { Route } from './+types/flights'
-import type { TFlight, TFlightPair } from '~/lib/types'
+import type {
+  TFlight,
+  TFlightPair,
+  TFlightSortOption,
+  TFlightSortOrder,
+} from '~/lib/types'
 import { flightService } from '~/lib/services/flightService'
 import { FlightDetailCard } from '~/components/flightDetailCard'
 import { useNavigate } from 'react-router'
 import { FlightCardWrapper } from '~/components/flightCardWrapper'
 import { PaginationComponent } from '~/components/paginationComponent'
 import { fromYYMMDD, yyMMddToISO } from '~/lib/utils'
-import { SortingMenu } from '~/components/sortFlights'
+import { SortingMenu, type SortOption } from '~/components/sortFlights'
 
 export const loader = async ({
   params: { source, destination, dep, arr },
@@ -20,23 +25,30 @@ export const loader = async ({
 
   const limit = Number(searchParams.get('limit')) || 10
   const page = Number(searchParams.get('page')) || 1
+  const sortBy = (searchParams.get('sortBy') as TFlightSortOption) || 'price'
+  const sortOrder = (searchParams.get('sortOrder') as TFlightSortOrder) || 'asc'
 
   try {
-    const searchParams = {
+    const searchParamsObj = {
       departureAirport: source.toUpperCase(),
       arrivalAirport: destination.toUpperCase(),
       departureDate: yyMMddToISO(dep),
       ...(arr && { arrivalDate: yyMMddToISO(arr) }),
       page,
       limit,
+      sortBy: sortBy,
+      sortOrder: sortOrder,
     }
 
-    const data = await flightService.searchFlightResults(searchParams)
-    console.log('Fetched flight data:', data)
+    const data = await flightService.searchFlightResults(searchParamsObj)
 
-    return { ...data, params: { source, destination, dep, arr } }
+    return {
+      ...data,
+      params: { source, destination, dep, arr },
+      sortBy,
+      sortOrder,
+    }
   } catch (error) {
-    console.log(error)
     console.error('Error fetching flights:', error)
     throw error
   }
@@ -56,14 +68,21 @@ const Flights = ({ loaderData }: Route.ComponentProps) => {
     tripType,
     pagination,
     params: { destination, source, arr, dep },
+    sortBy,
+    sortOrder,
   } = loaderData
+
+  // Create current sort value for the SortingMenu
+  const currentSort: SortOption =
+    sortBy && sortOrder ? (`${sortBy}-${sortOrder}` as SortOption) : 'price-asc'
 
   const getFlightSummary = (flight: TFlight | TFlightPair) => {
     if (tripType === 'one-way') {
+      const flightDetail = flight as TFlight
       return {
-        price: (flight as TFlight).price,
-        currency: (flight as TFlight).currency,
-        airline: (flight as TFlight).airline,
+        price: flightDetail.price,
+        currency: flightDetail.currency,
+        airline: flightDetail.airline,
       }
     }
     if (tripType === 'round-trip') {
@@ -94,9 +113,33 @@ const Flights = ({ loaderData }: Route.ComponentProps) => {
 
   const onPaginate = (page: number) => {
     const base = `/flights/${source}/${destination}`
+    const currentUrl = new URL(window.location.href)
+    const searchParams = new URLSearchParams(currentUrl.search)
+
+    // Preserve existing sort parameters
+    searchParams.set('page', page.toString())
+
     let path = arr
-      ? `${base}/${dep}/${arr}?page=${page}`
-      : `${base}/${dep}?page=${page}`
+      ? `${base}/${dep}/${arr}?${searchParams.toString()}`
+      : `${base}/${dep}?${searchParams.toString()}`
+    navigate(path)
+  }
+
+  const onSortChange = (sortOption: SortOption) => {
+    const [sortField, sortDirection] = sortOption.split('-') as [
+      string,
+      'asc' | 'desc',
+    ]
+    const base = `/flights/${source}/${destination}`
+
+    const searchParams = new URLSearchParams()
+    searchParams.set('sortBy', sortField)
+    searchParams.set('sortOrder', sortDirection)
+    searchParams.set('page', '1') // Reset to first page when sorting changes
+
+    let path = arr
+      ? `${base}/${dep}/${arr}?${searchParams.toString()}`
+      : `${base}/${dep}?${searchParams.toString()}`
     navigate(path)
   }
 
@@ -111,17 +154,12 @@ const Flights = ({ loaderData }: Route.ComponentProps) => {
 
       <div className="w-full flex justify-center mt-4">
         <div className="w-full max-w-6xl flex justify-end px-4">
-          <SortingMenu
-            value={'price-asc'}
-            onChange={(value) => console.log(value)}
-          />
+          <SortingMenu value={currentSort} onChange={onSortChange} />
         </div>
       </div>
 
       <div className="w-full flex justify-center mt-8">
         <div className="w-full max-w-6xl">
-          <h1></h1>
-
           {data &&
             data.length > 0 &&
             data.map((flight) => (

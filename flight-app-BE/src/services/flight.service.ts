@@ -2,6 +2,81 @@ import { TFlight, TFlightSearchResult, TFlightPair } from '@/utils/types'
 import { TFlightQueryParams } from '@/utils/validation'
 import { flightStorageService } from './flightStorage.service'
 
+// Sorting utility functions
+const sortFlights = (
+  flights: TFlight[],
+  sortBy: 'price' | 'departure' | 'arrival',
+  sortOrder: 'asc' | 'desc',
+): TFlight[] => {
+  return [...flights].sort((a, b) => {
+    let valueA: number | string
+    let valueB: number | string
+
+    switch (sortBy) {
+      case 'price':
+        valueA = a.price
+        valueB = b.price
+        break
+      case 'departure':
+        valueA = new Date(a.departure).getTime()
+        valueB = new Date(b.departure).getTime()
+        break
+      case 'arrival':
+        valueA = new Date(a.arrival).getTime()
+        valueB = new Date(b.arrival).getTime()
+        break
+      default:
+        return 0
+    }
+
+    if (valueA < valueB) {
+      return sortOrder === 'asc' ? -1 : 1
+    }
+    if (valueA > valueB) {
+      return sortOrder === 'asc' ? 1 : -1
+    }
+    return 0
+  })
+}
+
+const sortFlightPairs = (
+  pairs: TFlightPair[],
+  sortBy: 'price' | 'departure' | 'arrival',
+  sortOrder: 'asc' | 'desc',
+): TFlightPair[] => {
+  return [...pairs].sort((a, b) => {
+    let valueA: number | string
+    let valueB: number | string
+
+    switch (sortBy) {
+      case 'price':
+        valueA = a.totalPrice
+        valueB = b.totalPrice
+        break
+      case 'departure':
+        // Sort by outbound departure time for round trips
+        valueA = new Date(a.outbound.departure).getTime()
+        valueB = new Date(b.outbound.departure).getTime()
+        break
+      case 'arrival':
+        // Sort by return arrival time for round trips
+        valueA = new Date(a.return.arrival).getTime()
+        valueB = new Date(b.return.arrival).getTime()
+        break
+      default:
+        return 0
+    }
+
+    if (valueA < valueB) {
+      return sortOrder === 'asc' ? -1 : 1
+    }
+    if (valueA > valueB) {
+      return sortOrder === 'asc' ? 1 : -1
+    }
+    return 0
+  })
+}
+
 const searchFlights = async ({
   source,
   departure,
@@ -9,6 +84,8 @@ const searchFlights = async ({
   return: returnDate,
   page = 1,
   limit = 10,
+  sortBy,
+  sortOrder = 'asc',
 }: TFlightQueryParams): Promise<TFlightSearchResult> => {
   // Validate required parameters
   if (!source || !destination || !departure) {
@@ -30,6 +107,8 @@ const searchFlights = async ({
       returnDate: returnDate!,
       page,
       limit,
+      sortBy,
+      sortOrder,
     })
   } else {
     return await handleOneWaySearch({
@@ -38,6 +117,8 @@ const searchFlights = async ({
       departure,
       page,
       limit,
+      sortBy,
+      sortOrder,
     })
   }
 }
@@ -48,12 +129,16 @@ const handleOneWaySearch = async ({
   departure,
   page,
   limit,
+  sortBy,
+  sortOrder,
 }: {
   source: string
   destination: string
   departure: string
   page: number
   limit: number
+  sortBy?: 'price' | 'departure' | 'arrival'
+  sortOrder?: 'asc' | 'desc'
 }): Promise<TFlightSearchResult> => {
   // Get all flights matching the criteria from storage
   const allFlights = await flightStorageService.searchFlights({
@@ -62,11 +147,16 @@ const handleOneWaySearch = async ({
     departure,
   })
 
+  // Apply sorting if specified
+  const sortedFlights = sortBy
+    ? sortFlights(allFlights, sortBy, sortOrder || 'asc')
+    : allFlights
+
   // Calculate pagination
-  const total = allFlights.length
+  const total = sortedFlights.length
   const startIndex = (page - 1) * limit
   const endIndex = startIndex + limit
-  const paginatedFlights = allFlights.slice(startIndex, endIndex)
+  const paginatedFlights = sortedFlights.slice(startIndex, endIndex)
 
   return {
     tripType: 'one-way',
@@ -86,6 +176,8 @@ const handleRoundTripSearch = async ({
   returnDate,
   page,
   limit,
+  sortBy,
+  sortOrder,
 }: {
   source: string
   destination: string
@@ -93,6 +185,8 @@ const handleRoundTripSearch = async ({
   returnDate: string
   page: number
   limit: number
+  sortBy?: 'price' | 'departure' | 'arrival'
+  sortOrder?: 'asc' | 'desc'
 }): Promise<TFlightSearchResult> => {
   // Get outbound flights (source -> destination)
   const outboundFlights = await flightStorageService.searchFlights({
@@ -130,13 +224,16 @@ const handleRoundTripSearch = async ({
     }
   }
 
+  // Apply sorting if specified
+  const sortedPairs = sortBy
+    ? sortFlightPairs(flightPairs, sortBy, sortOrder || 'asc')
+    : flightPairs
+
   // Apply pagination to flight pairs
-  const total = flightPairs.length
-  console.log(typeof page, typeof limit)
+  const total = sortedPairs.length
   const startIndex = (page - 1) * limit
   const endIndex = startIndex + limit
-  console.log(startIndex, endIndex, total)
-  const paginatedPairs = flightPairs.slice(startIndex, endIndex)
+  const paginatedPairs = sortedPairs.slice(startIndex, endIndex)
 
   return {
     tripType: 'round-trip',
@@ -157,7 +254,6 @@ const getFlightById = async (flightId: string): Promise<TFlight | null> => {
 const initializeFlightService = async (): Promise<void> => {
   try {
     await flightStorageService.preloadPopularRoutes()
-    console.log('Flight service initialized successfully')
   } catch (error) {
     console.error('Error initializing flight service:', error)
   }

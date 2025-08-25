@@ -21,6 +21,8 @@ export interface TFlightSearchParams {
   return?: string
   limit?: number
   page?: number
+  sortBy?: 'price' | 'departure' | 'arrival'
+  sortOrder?: 'asc' | 'desc'
 }
 
 export interface TFlightPair {
