@@ -1,6 +1,7 @@
 import type { TPaginatedDataResponse } from './TResponse'
 
 export type TFlight = {
+  id: string
   flightNumber: string
   airline: string
   source: string
@@ -15,4 +16,14 @@ export type TFlight = {
   flightClass: string
 }
 
-export type TFlightPaginatedResponse = TPaginatedDataResponse<TFlight[]>
+export type TFlightPair = {
+  outbound: TFlight
+  return: TFlight
+  totalPrice: number
+  totalDuration: string
+  pairId: string
+}
+
+export type TFlightPaginatedResponse = TPaginatedDataResponse<
+  TFlight[] | TFlightPair[]
+> & { tripType: 'one-way' | 'round-trip' }

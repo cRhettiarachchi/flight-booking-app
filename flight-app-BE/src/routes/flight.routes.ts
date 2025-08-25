@@ -7,9 +7,10 @@ const router = Router()
 
 /**
  * @route   GET /api/flights/search
- * @desc    Search flights with query validation
+ * @desc    Search flights with query validation - supports both one-way and round-trip
  * @access  Public
- * @query   source?: string (3 chars), destination?: string (3 chars), departure?: string (YYYY-MM-DD), limit?: number (1-100), page?: number (>=1)
+ * @query   source?: string (3 chars), destination?: string (3 chars), departure?: string (YYYY-MM-DD), return?: string (YYYY-MM-DD), limit?: number (1-100), page?: number (>=1)
+ * @note    If return date is provided, search becomes round-trip and returns flight pairs
  */
 router.get(
   '/search',

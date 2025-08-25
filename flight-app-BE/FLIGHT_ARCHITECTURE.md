@@ -62,13 +62,18 @@ Your flight booking system has been successfully transformed from hardcoded data
 - `GET /api/flights/:id` - **NEW** Retrieve flight by ID
 
 **Query Parameters**:
-- `source` - Origin airport code (e.g., JFK)
-- `destination` - Destination airport code (e.g., LAX)
-- `departure` - Departure date (YYYY-MM-DD format)
+- `source` - Origin airport code (e.g., JFK) [REQUIRED]
+- `destination` - Destination airport code (e.g., LAX) [REQUIRED]
+- `departure` - Departure date (YYYY-MM-DD format) [REQUIRED]
+- `return` - Return date (YYYY-MM-DD format) [OPTIONAL - makes it round-trip]
 - `limit` - Results per page (1-100, default: 10)
 - `page` - Page number (≥1, default: 1)
 
-**Note**: Removed arrival date filtering as it's not typical in flight booking UX. Users select departure date, and arrival times are determined by flight schedules.
+**Trip Types**:
+- **One-way**: Only `departure` date provided → Returns individual flights
+- **Round-trip**: Both `departure` and `return` dates provided → Returns flight pairs
+
+**Flight Pairing**: Round-trip searches generate all possible combinations of outbound + return flights, with total pricing and duration calculated automatically.
 
 ## Flight ID System
 

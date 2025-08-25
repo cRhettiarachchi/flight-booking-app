@@ -15,5 +15,6 @@ export type TPaginatedMeta = {
 export type TPaginatedDataResponse<TData> = {
   data: TData
   count: number
-  meta: TPaginatedMeta
+  total: number
+  pagination: TPaginatedMeta
 }

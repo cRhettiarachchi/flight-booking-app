@@ -1,6 +1,10 @@
 import { FlightSearchBar } from '~/flightSearch/flightSearch'
 import type { Route } from './+types/flights'
-import type { TFlightPaginatedResponse } from '~/lib/types/TFlightsResponse'
+import type {
+  TFlight,
+  TFlightPaginatedResponse,
+  TFlightPair,
+} from '~/lib/types/TFlightsResponse'
 import { fetchApi } from '~/lib/api/fetch'
 import { Card, CardContent } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
@@ -15,6 +19,8 @@ import {
   PaginationPrevious,
 } from '~/components/ui/pagination'
 import { useNavigate } from 'react-router'
+import { FlightCardWrapper } from '~/components/flightCardWrapper'
+import { Separator } from '@radix-ui/react-separator'
 
 export const loader = async ({
   params: { source, destination, dep, arr },
@@ -27,7 +33,7 @@ export const loader = async ({
 
   try {
     const data = await fetchApi<TFlightPaginatedResponse>(
-      'http://localhost:3001/api/flights/search?source=JFK&destination=LAX&departure=2024-08-25&limit=3',
+      'http://localhost:3001/api/flights/search?source=NRT&destination=CMB&departure=2025-08-25&return=2025-10-10&limit=10&page=1',
     )
 
     return data
@@ -38,8 +44,48 @@ export const loader = async ({
 
 const Flights = ({ loaderData }: Route.ComponentProps) => {
   console.log('Flights page', loaderData?.data)
-
   const navigate = useNavigate()
+
+  if (!loaderData) {
+    navigate('/error')
+    return
+  }
+
+  const { data, tripType, pagination } = loaderData
+
+  const getFlightSummary = (flight: TFlight | TFlightPair) => {
+    if (tripType === 'one-way') {
+      return {
+        price: (flight as TFlight).price,
+        currency: (flight as TFlight).currency,
+        airline: (flight as TFlight).airline,
+      }
+    }
+    if (tripType === 'round-trip') {
+      const pair = flight as TFlightPair
+      return {
+        price: pair.totalPrice,
+        currency: pair.outbound.currency,
+        airline: `${pair.outbound.airline} / ${pair.return.airline}`,
+      }
+    }
+  }
+
+  const getFlightRender = (flight: TFlight | TFlightPair) => {
+    if (tripType === 'one-way') {
+      return <FlightDetailCard {...(flight as TFlight)} />
+    }
+    if (tripType === 'round-trip') {
+      const pair = flight as TFlightPair
+      return (
+        <div className="flex flex-col gap-4 w-full">
+          <FlightDetailCard {...pair.outbound} />
+          <div className=" w-full justify-center border"></div>
+          <FlightDetailCard {...pair.return} />
+        </div>
+      )
+    }
+  }
 
   return (
     <>
@@ -48,30 +94,29 @@ const Flights = ({ loaderData }: Route.ComponentProps) => {
       <div className="w-full flex justify-center mt-8">
         <div className="w-full max-w-6xl">
           <h1></h1>
-          {loaderData?.data && loaderData.data.length > 0
-            ? loaderData.data.map((flight) => (
-                <div
-                  className="my-4"
-                  key={flight.source + flight.destination + flight.departure}
-                >
-                  <FlightDetailCard {...flight} />
-                </div>
-              ))
-            : null}
+
+          {data &&
+            data.length > 0 &&
+            data.map((flight) => (
+              <div className="my-4" key={JSON.stringify(flight)}>
+                <FlightCardWrapper {...getFlightSummary(flight)}>
+                  {getFlightRender(flight)}
+                </FlightCardWrapper>
+              </div>
+            ))}
 
           <Pagination>
             <PaginationContent>
               <PaginationItem>
                 <PaginationPrevious
-                  href={`?page=${loaderData?.meta.page}`}
-                  aria-disabled={!loaderData?.meta.hasPreviousPage}
+                  aria-disabled={!pagination.hasPreviousPage}
                 />
               </PaginationItem>
-              {[...Array(loaderData?.meta.totalPages)].map((_, idx) => (
+              {[...Array(pagination.totalPages)].map((_, idx) => (
                 <PaginationItem key={idx}>
                   <PaginationLink
                     href={`?page=${idx + 1}`}
-                    isActive={loaderData?.meta.page === idx + 1}
+                    isActive={pagination.page === idx + 1}
                   >
                     {idx + 1}
                   </PaginationLink>
@@ -84,7 +129,7 @@ const Flights = ({ loaderData }: Route.ComponentProps) => {
                     const base = '/flights/nrt/cts/250813/250813?page=2'
                     navigate(base)
                   }}
-                  aria-disabled={!loaderData?.meta.hasNextPage}
+                  aria-disabled={!pagination.hasNextPage}
                 />
               </PaginationItem>
             </PaginationContent>

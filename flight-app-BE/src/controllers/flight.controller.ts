@@ -11,6 +11,7 @@ const searchFlights = async (
       source,
       destination,
       departure,
+      return: returnDate,
       limit = 10,
       page = 1,
     } = req.query
@@ -19,12 +20,14 @@ const searchFlights = async (
       source,
       destination,
       departure,
+      return: returnDate,
       limit,
       page,
     })
 
     res.status(200).json({
-      data: result.data,
+      tripType: result.tripType,
+      data: result.data, // Always contains the main data (flights or pairs)
       total: result.total,
       count: result.data.length,
       pagination: {
