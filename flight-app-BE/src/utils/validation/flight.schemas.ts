@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod'
 
 // Schema for flight search query parameters
 export const flightQuerySchema = z.object({
@@ -8,6 +8,6 @@ export const flightQuerySchema = z.object({
   return: z.string().min(10).max(10).optional(), // Return date (YYYY-MM-DD format) - if provided, it's round-trip
   limit: z.coerce.number().int().min(1).max(100).optional(), // Results per page
   page: z.coerce.number().int().min(0).optional(), // Page number
-});
+})
 
-export type TFlightQueryParams = z.infer<typeof flightQuerySchema>;
+export type TFlightQueryParams = z.infer<typeof flightQuerySchema>

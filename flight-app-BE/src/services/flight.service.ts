@@ -132,8 +132,10 @@ const handleRoundTripSearch = async ({
 
   // Apply pagination to flight pairs
   const total = flightPairs.length
+  console.log(typeof page, typeof limit)
   const startIndex = (page - 1) * limit
   const endIndex = startIndex + limit
+  console.log(startIndex, endIndex, total)
   const paginatedPairs = flightPairs.slice(startIndex, endIndex)
 
   return {

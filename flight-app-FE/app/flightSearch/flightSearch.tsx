@@ -14,7 +14,7 @@ import {
   FormMessage,
 } from '~/components/ui/form'
 import { ToggleGroup, ToggleGroupItem } from '~/components/ui/toggle-group'
-import { cn } from '~/lib/utils'
+import { cn, toYYMMDD } from '~/lib/utils'
 
 import { AirportCombobox } from '../components/airportCombobox'
 import { DatePickerRangeOrSingle } from '../components/datePickerRangeOrSingle'
@@ -23,7 +23,7 @@ import { redirect, useNavigate } from 'react-router'
 
 const schema = z
   .object({
-    trip: z.enum(['oneway', 'round']),
+    trip: z.enum(['one-way', 'round-trip']),
     from: z.string().length(3, 'Choose origin'),
     to: z.string().length(3, 'Choose destination'),
     depart: z.date(),
@@ -33,23 +33,27 @@ const schema = z
     path: ['to'],
     message: 'Airports must differ',
   })
-  .refine((v) => v.trip === 'oneway' || !!v.return, {
+  .refine((v) => v.trip === 'one-way' || !!v.return, {
     path: ['return'],
     message: 'Return date required',
   })
 
-function toYYMMDD(d: Date) {
-  return format(d, 'yyMMdd')
-}
-
-export function FlightSearchBar() {
+export function FlightSearchBar({
+  from,
+  to,
+  trip,
+  depart,
+  return: rtn,
+}: Partial<z.infer<typeof schema>>) {
   const navigate = useNavigate()
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: {
-      trip: 'round',
-      from: '',
-      to: '',
+      trip: trip || 'round-trip',
+      from: from || '',
+      to: to || '',
+      depart,
+      return: rtn,
     },
   })
 
@@ -65,7 +69,7 @@ export function FlightSearchBar() {
   const onSubmit = (value: z.infer<typeof schema>) => {
     const base = `/flights/${value.from.toLowerCase()}/${value.to.toLowerCase()}/${toYYMMDD(value.depart)}`
     const path =
-      value.trip === 'round' && value.return
+      value.trip === 'round-trip' && value.return
         ? `${base}/${toYYMMDD(value.return)}`
         : base
 
@@ -73,9 +77,9 @@ export function FlightSearchBar() {
     navigate(path)
   }
 
-  const isRound = watch('trip') === 'round'
-  const depart = watch('depart')
-  const rtn = watch('return')
+  const isRound = watch('trip') === 'round-trip'
+  const departFormValue = watch('depart')
+  const returnFormValue = watch('return')
 
   return (
     <div className="w-full flex justify-center">
@@ -101,13 +105,13 @@ export function FlightSearchBar() {
                           className="rounded-full bg-muted/30 p-1"
                         >
                           <ToggleGroupItem
-                            value="oneway"
+                            value="one-way"
                             className="px-3 rounded-full"
                           >
                             One-way
                           </ToggleGroupItem>
                           <ToggleGroupItem
-                            value="round"
+                            value="round-trip"
                             className="px-3 rounded-full"
                           >
                             Round trip
@@ -185,7 +189,10 @@ export function FlightSearchBar() {
                           <FormControl>
                             <DatePickerRangeOrSingle
                               mode={isRound ? 'range' : 'single'}
-                              value={{ from: depart, to: rtn }}
+                              value={{
+                                from: departFormValue,
+                                to: returnFormValue,
+                              }}
                               onChange={(val: any) => {
                                 if (isRound) {
                                   setValue('depart', val?.from)

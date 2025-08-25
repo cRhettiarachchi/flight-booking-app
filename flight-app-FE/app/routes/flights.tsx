@@ -6,21 +6,11 @@ import type {
   TFlightPair,
 } from '~/lib/types/TFlightsResponse'
 import { fetchApi } from '~/lib/api/fetch'
-import { Card, CardContent } from '~/components/ui/card'
-import { Button } from '~/components/ui/button'
 import { FlightDetailCard } from '~/components/flightDetailCard'
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '~/components/ui/pagination'
 import { useNavigate } from 'react-router'
 import { FlightCardWrapper } from '~/components/flightCardWrapper'
-import { Separator } from '@radix-ui/react-separator'
+import { PaginationComponent } from '~/components/paginationComponent'
+import { fromYYMMDD, yyMMddToISO } from '~/lib/utils'
 
 export const loader = async ({
   params: { source, destination, dep, arr },
@@ -31,13 +21,19 @@ export const loader = async ({
   const searchParams = url.searchParams
   console.log('Search params:', searchParams.get('page'))
 
-  try {
-    const data = await fetchApi<TFlightPaginatedResponse>(
-      'http://localhost:3001/api/flights/search?source=NRT&destination=CMB&departure=2025-08-25&return=2025-10-10&limit=10&page=1',
-    )
+  const limit = searchParams.get('limit') || '10'
+  const page = searchParams.get('page') || '1'
 
-    return data
+  try {
+    const base = `http://localhost:3001/api/flights/search?source=${source}&destination=${destination}&departure=${yyMMddToISO(dep)}&limit=${limit}&page=${page}`
+    let path = arr ? `${base}&return=${yyMMddToISO(arr)}` : base
+    const data = await fetchApi<TFlightPaginatedResponse>(path)
+
+    console.log('Fetched flight data:', data)
+
+    return { ...data, params: { source, destination, dep, arr } }
   } catch (error) {
+    console.log(error)
     console.error('Error fetching flights:', error)
   }
 }
@@ -51,7 +47,12 @@ const Flights = ({ loaderData }: Route.ComponentProps) => {
     return
   }
 
-  const { data, tripType, pagination } = loaderData
+  const {
+    data,
+    tripType,
+    pagination,
+    params: { destination, source, arr, dep },
+  } = loaderData
 
   const getFlightSummary = (flight: TFlight | TFlightPair) => {
     if (tripType === 'one-way') {
@@ -87,9 +88,22 @@ const Flights = ({ loaderData }: Route.ComponentProps) => {
     }
   }
 
+  const onPaginate = (page: number) => {
+    const base = `/flights/${source}/${destination}`
+    let path = arr
+      ? `${base}/${dep}/${arr}?page=${page}`
+      : `${base}/${dep}?page=${page}`
+    navigate(path)
+  }
+
   return (
     <>
-      <FlightSearchBar />
+      <FlightSearchBar
+        from={source}
+        to={destination}
+        depart={fromYYMMDD(dep)}
+        return={arr ? fromYYMMDD(arr) : undefined}
+      />
 
       <div className="w-full flex justify-center mt-8">
         <div className="w-full max-w-6xl">
@@ -105,35 +119,13 @@ const Flights = ({ loaderData }: Route.ComponentProps) => {
               </div>
             ))}
 
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  aria-disabled={!pagination.hasPreviousPage}
-                />
-              </PaginationItem>
-              {[...Array(pagination.totalPages)].map((_, idx) => (
-                <PaginationItem key={idx}>
-                  <PaginationLink
-                    href={`?page=${idx + 1}`}
-                    isActive={pagination.page === idx + 1}
-                  >
-                    {idx + 1}
-                  </PaginationLink>
-                </PaginationItem>
-              ))}
-              <PaginationItem>
-                <PaginationNext
-                  onClick={() => {
-                    console.log('Next page clicked')
-                    const base = '/flights/nrt/cts/250813/250813?page=2'
-                    navigate(base)
-                  }}
-                  aria-disabled={!pagination.hasNextPage}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
+          <PaginationComponent
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            hasNextPage={pagination.hasNext}
+            hasPreviousPage={pagination.hasPrevious}
+            setPage={onPaginate}
+          />
         </div>
       </div>
     </>

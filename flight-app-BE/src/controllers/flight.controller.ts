@@ -12,31 +12,37 @@ const searchFlights = async (
       destination,
       departure,
       return: returnDate,
-      limit = 10,
-      page = 1,
+      limit = '10',
+      page = '1',
     } = req.query
+
+    // Convert string query parameters to numbers
+    const numericLimit = parseInt(limit.toString(), 10) || 10
+    const numericPage = parseInt(page.toString(), 10) || 1
 
     const result = await flightService.searchFlights({
       source,
       destination,
       departure,
       return: returnDate,
-      limit,
-      page,
+      limit: numericLimit,
+      page: numericPage,
     })
+
+    console.log('Search result:', result)
 
     res.status(200).json({
       tripType: result.tripType,
-      data: result.data, // Always contains the main data (flights or pairs)
+      data: result.data,
       total: result.total,
       count: result.data.length,
       pagination: {
-        page: result.page,
-        limit: result.limit,
+        page: numericPage,
+        limit: numericLimit,
         total: result.total,
         hasNext: result.hasNext,
         hasPrevious: result.hasPrevious,
-        totalPages: Math.ceil(result.total / result.limit),
+        totalPages: Math.ceil(result.total / numericLimit),
       },
     })
   } catch (error) {

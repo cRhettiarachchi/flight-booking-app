@@ -8,8 +8,8 @@ export type TPaginatedMeta = {
   page: number
   limit: number
   totalPages: number
-  hasNextPage: boolean
-  hasPreviousPage: boolean
+  hasNext: boolean
+  hasPrevious: boolean
 }
 
 export type TPaginatedDataResponse<TData> = {
