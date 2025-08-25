@@ -1,4 +1,5 @@
 export interface TFlight {
+  id: string; // Unique flight identifier
   flightNumber: string;
   airline: string;
   source: string;
@@ -19,7 +20,16 @@ export interface TFlightSearchParams {
   departure?: string;
   arrival?: string;
   limit?: number;
-  offset?: number;
+  page?: number;
+}
+
+export interface TFlightSearchResult {
+  data: TFlight[];
+  total: number;
+  page: number;
+  limit: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
 }
 
 export interface TPaginatedFlightsResponse {
