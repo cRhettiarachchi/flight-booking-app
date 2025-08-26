@@ -1,10 +1,8 @@
-'use client'
-
 import { BookingForm } from '~/components/bookingForm'
 import { FlightSummary } from '~/components/flightSummary'
 import type { Route } from './+types/flightBooking'
 import { getFlightDetails } from '~/lib/services/flightService'
-import { useNavigate } from 'react-router'
+import { useNavigate, useSubmit } from 'react-router'
 import { Card, CardFooter } from '~/components/ui/card'
 
 export const loader = async ({
@@ -21,10 +19,18 @@ export const loader = async ({
   }
 }
 
+export async function clientAction({ request }: Route.ClientActionArgs) {
+  let formData = await request.formData()
+  console.log(formData.get('fullName'))
+  return null
+}
+
 export default function FlightDetailsPage({
   loaderData,
 }: Route.ComponentProps) {
   const navigate = useNavigate()
+
+  let submit = useSubmit()
 
   if (!loaderData) {
     navigate('/error')
@@ -67,7 +73,9 @@ export default function FlightDetailsPage({
           </div>
 
           <div className="lg:col-span-1">
-            <BookingForm />
+            <BookingForm
+              onSubmit={(data) => submit(data, { method: 'post' })}
+            />
           </div>
         </div>
       </div>
