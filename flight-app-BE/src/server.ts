@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import helmet from "helmet";
 import cors from "cors";
-import { airportRoutes, flightRoutes } from "./routes";
+import { airportRoutes, flightRoutes, bookingRoutes } from "./routes";
 
 // Create Express app
 const app = express();
@@ -28,5 +28,6 @@ app.get("/health", (req: Request, res: Response) => {
 // API routes
 app.use("/api/airports", airportRoutes);
 app.use("/api/flights", flightRoutes);
+app.use("/api/bookings", bookingRoutes);
 
 export default app;

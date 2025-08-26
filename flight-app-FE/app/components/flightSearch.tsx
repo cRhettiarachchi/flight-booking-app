@@ -1,7 +1,5 @@
-import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { format } from 'date-fns'
 import { ArrowLeftRight, Calendar as CalendarIcon } from 'lucide-react'
 
 import { Button } from '~/components/ui/button'
@@ -14,68 +12,57 @@ import {
   FormMessage,
 } from '~/components/ui/form'
 import { ToggleGroup, ToggleGroupItem } from '~/components/ui/toggle-group'
-import { cn } from '~/lib/utils'
+import { toYYMMDD } from '~/lib/utils'
+import { flightSearchFormSchema } from '~/lib/schemas'
+import type { TFlightSearchFormData } from '~/lib/types'
 
 import { AirportCombobox } from '../components/airportCombobox'
 import { DatePickerRangeOrSingle } from '../components/datePickerRangeOrSingle'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
-import { redirect, useNavigate } from 'react-router'
+import { useNavigate } from 'react-router'
 
-const schema = z
-  .object({
-    trip: z.enum(['oneway', 'round']),
-    from: z.string().length(3, 'Choose origin'),
-    to: z.string().length(3, 'Choose destination'),
-    depart: z.date(),
-    return: z.date().optional(),
-  })
-  .refine((v) => v.from.toUpperCase() !== v.to.toUpperCase(), {
-    path: ['to'],
-    message: 'Airports must differ',
-  })
-  .refine((v) => v.trip === 'oneway' || !!v.return, {
-    path: ['return'],
-    message: 'Return date required',
-  })
-
-function toYYMMDD(d: Date) {
-  return format(d, 'yyMMdd')
-}
-
-export function FlightSearchBar() {
+export function FlightSearchBar({
+  departureAirport,
+  arrivalAirport,
+  tripType,
+  departureDate,
+  arrivalDate,
+}: Partial<TFlightSearchFormData>) {
   const navigate = useNavigate()
-  const form = useForm<z.infer<typeof schema>>({
-    resolver: zodResolver(schema),
+
+  const form = useForm<TFlightSearchFormData>({
+    resolver: zodResolver(flightSearchFormSchema),
     defaultValues: {
-      trip: 'round',
-      from: '',
-      to: '',
+      tripType: tripType || 'round-trip',
+      departureAirport: departureAirport || '',
+      arrivalAirport: arrivalAirport || '',
+      departureDate,
+      arrivalDate,
     },
   })
 
   const { getValues, setValue, watch, handleSubmit, control } = form
 
-  const swap = () => {
-    const f = getValues('from')
-    const t = getValues('to')
-    setValue('from', t ?? '')
-    setValue('to', f ?? '')
+  const swapAirports = () => {
+    const departure = getValues('departureAirport')
+    const arrival = getValues('arrivalAirport')
+    setValue('departureAirport', arrival ?? '')
+    setValue('arrivalAirport', departure ?? '')
   }
 
-  const onSubmit = (value: z.infer<typeof schema>) => {
-    const base = `/flights/${value.from.toLowerCase()}/${value.to.toLowerCase()}/${toYYMMDD(value.depart)}`
+  const onSubmit = (value: TFlightSearchFormData) => {
+    const base = `/flights/${value.departureAirport.toLowerCase()}/${value.arrivalAirport.toLowerCase()}/${toYYMMDD(value.departureDate)}`
     const path =
-      value.trip === 'round' && value.return
-        ? `${base}/${toYYMMDD(value.return)}`
+      value.tripType === 'round-trip' && value.arrivalDate
+        ? `${base}/${toYYMMDD(value.arrivalDate)}`
         : base
 
-    console.log(path)
     navigate(path)
   }
 
-  const isRound = watch('trip') === 'round'
-  const depart = watch('depart')
-  const rtn = watch('return')
+  const isRoundTrip = watch('tripType') === 'round-trip'
+  const departureFormValue = watch('departureDate')
+  const arrivalFormValue = watch('arrivalDate')
 
   return (
     <div className="w-full flex justify-center">
@@ -89,10 +76,10 @@ export function FlightSearchBar() {
               <form onSubmit={handleSubmit(onSubmit)}>
                 <FormField
                   control={control}
-                  name="trip"
+                  name="tripType"
                   render={({ field }) => (
                     <FormItem className="flex flex-col justify-end">
-                      <FormLabel className="sr-only">Trip</FormLabel>
+                      <FormLabel className="sr-only">Trip Type</FormLabel>
                       <FormControl>
                         <ToggleGroup
                           type="single"
@@ -101,13 +88,13 @@ export function FlightSearchBar() {
                           className="rounded-full bg-muted/30 p-1"
                         >
                           <ToggleGroupItem
-                            value="oneway"
+                            value="one-way"
                             className="px-3 rounded-full"
                           >
                             One-way
                           </ToggleGroupItem>
                           <ToggleGroupItem
-                            value="round"
+                            value="round-trip"
                             className="px-3 rounded-full"
                           >
                             Round trip
@@ -123,7 +110,7 @@ export function FlightSearchBar() {
                   <div className="flex-1">
                     <FormField
                       control={control}
-                      name="from"
+                      name="departureAirport"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>From</FormLabel>
@@ -147,7 +134,7 @@ export function FlightSearchBar() {
                       variant="ghost"
                       size="icon"
                       className="rounded-full"
-                      onClick={swap}
+                      onClick={swapAirports}
                       aria-label="Swap airports"
                     >
                       <ArrowLeftRight className="h-4 w-4" />
@@ -158,7 +145,7 @@ export function FlightSearchBar() {
                   <div className="flex-1">
                     <FormField
                       control={control}
-                      name="to"
+                      name="arrivalAirport"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>To</FormLabel>
@@ -178,18 +165,23 @@ export function FlightSearchBar() {
                   <div className="flex-1">
                     <FormField
                       control={control}
-                      name="depart"
+                      name="departureDate"
                       render={({ field }) => (
                         <FormItem className="md:col-span-1">
-                          <FormLabel>{isRound ? 'Dates' : 'Depart'}</FormLabel>
+                          <FormLabel>
+                            {isRoundTrip ? 'Dates' : 'Departure'}
+                          </FormLabel>
                           <FormControl>
                             <DatePickerRangeOrSingle
-                              mode={isRound ? 'range' : 'single'}
-                              value={{ from: depart, to: rtn }}
+                              mode={isRoundTrip ? 'range' : 'single'}
+                              value={{
+                                from: departureFormValue,
+                                to: arrivalFormValue,
+                              }}
                               onChange={(val: any) => {
-                                if (isRound) {
-                                  setValue('depart', val?.from)
-                                  setValue('return', val?.to)
+                                if (isRoundTrip) {
+                                  setValue('departureDate', val?.from)
+                                  setValue('arrivalDate', val?.to)
                                 } else {
                                   field.onChange(val as Date)
                                 }

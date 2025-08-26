@@ -1,4 +1,4 @@
-import { FlightSearchBar } from '~/flightSearch/flightSearch'
+import { FlightSearchBar } from '~/components/flightSearch'
 import type { Route } from './+types/home'
 
 export function meta({}: Route.MetaArgs) {

@@ -4,7 +4,7 @@ export async function fetchApi<TResponse, TRequestBody = undefined>(
   url: string,
   options?: {
     method?: string
-    body?: TRequestBody
+    body?: any
     headers?: Record<string, string>
   },
 ): Promise<TResponse> {
