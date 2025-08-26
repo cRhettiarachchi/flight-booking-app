@@ -1,9 +1,7 @@
 import {
   ArrowLeftRight,
   ArrowRight,
-  Badge,
   Calendar,
-  Clock,
   DollarSign,
   Plane,
 } from 'lucide-react'
