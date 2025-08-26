@@ -14,7 +14,6 @@ const searchAirports = async (
   const normalizedSearch = search.trim()?.toLowerCase()
 
   if (normalizedSearch) {
-    console.log(airports.map((data) => data))
     results = results.filter(
       (airport) =>
         airport.code?.toLowerCase().includes(normalizedSearch) ||

@@ -33,8 +33,6 @@ const searchFlights = async (
       sortOrder,
     })
 
-    console.log('Search result:', result)
-
     res.status(200).json({
       tripType: result.tripType,
       data: result.data,
