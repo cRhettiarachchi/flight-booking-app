@@ -6,6 +6,9 @@ export const API_ENDPOINTS = {
     getById: (sourceId: string, destinationId?: string) =>
       `${API_BASE_URL}/flights/${sourceId}${destinationId ? `/${destinationId}` : ''}`,
   },
+  bookings: {
+    create: `${API_BASE_URL}/bookings`,
+  },
 } as const
 
 export const API_CONFIG = {

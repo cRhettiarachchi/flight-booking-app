@@ -53,7 +53,6 @@ export const loader = async ({
 }
 
 const Flights = ({ loaderData }: Route.ComponentProps) => {
-  console.log('Flights page', loaderData?.data)
   const navigate = useNavigate()
 
   if (!loaderData) {

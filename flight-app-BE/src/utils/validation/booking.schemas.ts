@@ -12,12 +12,8 @@ export const bookingRequestSchema = z.object({
     .optional(),
 
   // Flight information (will come from the frontend)
-  sourceFlightId: z.string().min(1, 'Source flight ID is required'),
-  destinationFlightId: z.string().optional(), // For round-trip flights
-
-  // Additional booking metadata
-  tripType: z.enum(['one-way', 'round-trip']).optional(),
-  totalAmount: z.number().positive().optional(), // For validation/audit purposes
+  outboundId: z.string().min(1, 'Source flight ID is required'),
+  returnId: z.string().optional(), // For round-trip flights
 })
 
 export type TBookingRequest = z.infer<typeof bookingRequestSchema>

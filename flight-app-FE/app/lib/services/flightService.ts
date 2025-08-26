@@ -2,14 +2,10 @@ import { fetchApi } from '../api/fetch'
 import { API_ENDPOINTS } from '../config/api'
 import type {
   TFlightPaginatedResponse,
-  TFlight,
   TFlightSearchParams,
   TFlightDetailResponse,
 } from '../types'
 
-/**
- * Builds query string from flight search parameters
- */
 const buildFlightSearchQuery = (params: TFlightSearchParams): string => {
   const searchParams = new URLSearchParams()
 
@@ -35,9 +31,6 @@ const buildFlightSearchQuery = (params: TFlightSearchParams): string => {
   return searchParams.toString()
 }
 
-/**
- * Searches for flights based on search parameters
- */
 export const searchFlightResults = async (
   params: TFlightSearchParams,
 ): Promise<TFlightPaginatedResponse> => {
@@ -47,9 +40,6 @@ export const searchFlightResults = async (
   return await fetchApi<TFlightPaginatedResponse>(url)
 }
 
-/**
- * Searches for flights based on search parameters
- */
 export const getFlightDetails = async (
   sourceId: string,
   destinationId?: string,
@@ -59,9 +49,6 @@ export const getFlightDetails = async (
   return await fetchApi<TFlightDetailResponse>(url)
 }
 
-/**
- * Flight service object with all flight-related API methods
- */
 export const flightService = {
   searchFlightResults,
   getFlightDetails,

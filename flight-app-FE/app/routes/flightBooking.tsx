@@ -4,6 +4,10 @@ import type { Route } from './+types/flightBooking'
 import { getFlightDetails } from '~/lib/services/flightService'
 import { useNavigate, useSubmit } from 'react-router'
 import { Card, CardFooter } from '~/components/ui/card'
+import { fetchApi } from '~/lib/api/fetch'
+import { bookingPayloadSchema } from '~/lib/schemas/bookingSchema'
+import { submitBooking } from '~/lib/services/bookingService'
+import { toast } from 'sonner'
 
 export const loader = async ({
   params: { sourceId, destinationId },
@@ -21,8 +25,22 @@ export const loader = async ({
 
 export async function clientAction({ request }: Route.ClientActionArgs) {
   let formData = await request.formData()
-  console.log(formData.get('fullName'))
-  return null
+
+  try {
+    const raw = Object.fromEntries(formData.entries())
+    const body = bookingPayloadSchema.parse(raw)
+
+    const response = await submitBooking(body)
+
+    toast.success('Success', {
+      description:
+        'Your booking has been successfully created. You will be redirected to main page',
+    })
+  } catch (error) {
+    console.error('Error submitting booking:', error)
+
+    return null
+  }
 }
 
 export default function FlightDetailsPage({
@@ -74,7 +92,16 @@ export default function FlightDetailsPage({
 
           <div className="lg:col-span-1">
             <BookingForm
-              onSubmit={(data) => submit(data, { method: 'post' })}
+              onSubmit={(data) =>
+                submit(
+                  {
+                    ...data,
+                    outboundId: outbound.id,
+                    ...(rtn ? { returnId: rtn.id } : {}),
+                  },
+                  { method: 'post' },
+                )
+              }
             />
           </div>
         </div>
