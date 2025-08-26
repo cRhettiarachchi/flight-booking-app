@@ -1,4 +1,5 @@
 import type { TFlight } from '~/lib/types/TFlightsResponse'
+import { isoToHHMM, isoToYYMMDD } from '~/lib/utils'
 
 export const FlightDetailCard = ({
   duration,
@@ -24,12 +25,12 @@ export const FlightDetailCard = ({
       <div className="flex-1 flex flex-col ">
         <div className="flex flex-col md:flex-row items-center gap-2 md:gap-5">
           <div className="flex flex-col items-center">
-            <span className="font-bold text-lg">depTime</span>
+            <span className="font-bold text-lg">{isoToHHMM(departure)}</span>
             <span className="uppercase text-xs text-muted-foreground">
               {source}
             </span>
             <span className="text-[10px] text-muted-foreground">
-              {departure}
+              {isoToYYMMDD(departure)}
             </span>
           </div>
 
@@ -42,11 +43,13 @@ export const FlightDetailCard = ({
           </div>
 
           <div className="flex flex-col items-center">
-            <span className="font-bold text-lg">arrTime</span>
+            <span className="font-bold text-lg">{isoToHHMM(arrival)}</span>
             <span className="uppercase text-xs text-muted-foreground">
               {destination}
             </span>
-            <span className="text-[10px] text-muted-foreground">{arrival}</span>
+            <span className="text-[10px] text-muted-foreground">
+              {isoToYYMMDD(arrival)}
+            </span>
           </div>
 
           <div className="flex gap-2 mt-2 text-xs text-muted-foreground">
