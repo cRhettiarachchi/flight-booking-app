@@ -2,10 +2,10 @@
 
 import { BookingForm } from '~/components/bookingForm'
 import { FlightSummary } from '~/components/flightSummary'
-import { RoundtripItinerary } from '~/components/roundTripItinerary'
 import type { Route } from './+types/flightBooking'
 import { getFlightDetails } from '~/lib/services/flightService'
 import { useNavigate } from 'react-router'
+import { Card, CardFooter } from '~/components/ui/card'
 
 export const loader = async ({
   params: { sourceId, destinationId },
@@ -51,8 +51,19 @@ export default function FlightDetailsPage({
       <div className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <FlightSummary tripType={tripType} {...outbound} />
-            {tripType === 'round-trip' && <RoundtripItinerary />}
+            <Card className="rounded-2xl shadow-sm">
+              <FlightSummary {...outbound} />
+              {rtn && <FlightSummary {...rtn} />}
+              {totalPrice && (
+                <CardFooter>
+                  <div className="flex justify-end">
+                    <span className="text-lg font-semibold">
+                      Total Price: {outbound.currency} {totalPrice}
+                    </span>
+                  </div>
+                </CardFooter>
+              )}
+            </Card>
           </div>
 
           <div className="lg:col-span-1">

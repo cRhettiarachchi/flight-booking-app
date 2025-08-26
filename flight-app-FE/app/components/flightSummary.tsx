@@ -29,25 +29,20 @@ function DetailRow({
 }
 
 export const FlightSummary = ({
-  tripType,
   flightNumber,
   departure,
   arrival,
   destination,
   source,
   price,
-  totalPrice,
   currency,
-}: Partial<TFlight> & TTripTypeData & { totalPrice?: number }) => {
+}: Partial<TFlight>) => {
   return (
-    <Card className="rounded-2xl shadow-sm">
+    <>
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
           <Plane className="h-5 w-5" />
-          <CardTitle className="text-base">
-            {flightNumber}{' '}
-            {tripType === 'round-trip' ? '(Roundtrip)' : '(One‑Way)'}
-          </CardTitle>
+          <CardTitle className="text-base">{flightNumber} </CardTitle>
         </div>
       </CardHeader>
 
@@ -58,7 +53,7 @@ export const FlightSummary = ({
             <ArrowRight className="h-4 w-4" /> Departure
           </div>
           <Separator className="my-2" />
-          <DetailRow label="Airport" value="—" />
+          <DetailRow label="Airport" value={source ?? '-'} />
           <DetailRow
             label="Date"
             value={
@@ -89,7 +84,8 @@ export const FlightSummary = ({
               </span>
             }
           />
-          value={arrival ? isoToHHMM(arrival) : '-'}
+
+          <DetailRow label="Time" value={arrival ? isoToHHMM(arrival) : '-'} />
         </div>
         {/* Price / Fare */}
         <div className="p-3 rounded-xl bg-muted/40">
@@ -99,17 +95,16 @@ export const FlightSummary = ({
           <Separator className="my-2" />
           <DetailRow label="Ticket Price" value={price || '-'} />
           <DetailRow label="Currency" value={currency || '-'} />
-          <Separator className="my-2" />
-          <DetailRow
-            label="Total"
-            value={
-              <span className="text-base font-semibold">
-                {totalPrice || price}
-              </span>
-            }
-          />
+          {/* <DetailRow */}
+          {/*   label="Total" */}
+          {/*   value={ */}
+          {/*     <span className="text-base font-semibold"> */}
+          {/*       {totalPrice || price} */}
+          {/*     </span> */}
+          {/*   } */}
+          {/* /> */}
         </div>
       </CardContent>
-    </Card>
+    </>
   )
 }

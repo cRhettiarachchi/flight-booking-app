@@ -12,14 +12,14 @@ import {
   FormMessage,
 } from '~/components/ui/form'
 import { ToggleGroup, ToggleGroupItem } from '~/components/ui/toggle-group'
-import { cn, toYYMMDD } from '~/lib/utils'
+import { toYYMMDD } from '~/lib/utils'
 import { flightSearchFormSchema } from '~/lib/schemas'
 import type { TFlightSearchFormData } from '~/lib/types'
 
 import { AirportCombobox } from '../components/airportCombobox'
 import { DatePickerRangeOrSingle } from '../components/datePickerRangeOrSingle'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
-import { redirect, useNavigate } from 'react-router'
+import { useNavigate } from 'react-router'
 
 export function FlightSearchBar({
   departureAirport,
@@ -29,6 +29,7 @@ export function FlightSearchBar({
   arrivalDate,
 }: Partial<TFlightSearchFormData>) {
   const navigate = useNavigate()
+
   const form = useForm<TFlightSearchFormData>({
     resolver: zodResolver(flightSearchFormSchema),
     defaultValues: {
