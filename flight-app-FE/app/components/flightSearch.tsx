@@ -65,7 +65,7 @@ export function FlightSearchBar({
   const arrivalFormValue = watch('arrivalDate')
 
   return (
-    <div className="w-full flex justify-center">
+    <div className="w-full flex justify-center px-2 md:px-0">
       <div className="w-full max-w-6xl">
         <Card>
           <CardHeader>
@@ -106,7 +106,7 @@ export function FlightSearchBar({
                   )}
                 />
 
-                <div className="flex gap-2">
+                <div className="flex flex-col md:flex-row gap-2 md:gap-4">
                   <div className="flex-1">
                     <FormField
                       control={control}
@@ -128,7 +128,7 @@ export function FlightSearchBar({
                   </div>
 
                   {/* Swap */}
-                  <div className="flex items-end justify-center pb-1">
+                  <div className="flex items-end justify-center pb-1 md:pb-0">
                     <Button
                       type="button"
                       variant="ghost"

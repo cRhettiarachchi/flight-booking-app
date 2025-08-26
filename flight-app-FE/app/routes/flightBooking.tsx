@@ -2,9 +2,8 @@ import { BookingForm } from '~/components/bookingForm'
 import { FlightSummary } from '~/components/flightSummary'
 import type { Route } from './+types/flightBooking'
 import { getFlightDetails } from '~/lib/services/flightService'
-import { useNavigate, useSubmit } from 'react-router'
+import { redirect, useNavigate, useSubmit } from 'react-router'
 import { Card, CardFooter } from '~/components/ui/card'
-import { fetchApi } from '~/lib/api/fetch'
 import { bookingPayloadSchema } from '~/lib/schemas/bookingSchema'
 import { submitBooking } from '~/lib/services/bookingService'
 import { toast } from 'sonner'
@@ -19,7 +18,7 @@ export const loader = async ({
     }
   } catch (error) {
     console.error('Error fetching flight details:', error)
-    return null
+    return redirect('/error')
   }
 }
 
@@ -32,12 +31,21 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
 
     const response = await submitBooking(body)
 
-    toast.success('Success', {
-      description:
-        'Your booking has been successfully created. You will be redirected to main page',
-    })
+    if (response.success) {
+      toast.success('Success', {
+        description:
+          'Your booking has been successfully created. You will be redirected to main page',
+      })
+    } else {
+      toast.error('Booking failed', {
+        description: 'Can you retry submitting the form',
+      })
+    }
   } catch (error) {
     console.error('Error submitting booking:', error)
+    toast.error('Booking failed', {
+      description: 'Can you retry submitting the form',
+    })
 
     return null
   }

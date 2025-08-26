@@ -8,7 +8,7 @@ import type {
 } from '~/lib/types'
 import { flightService } from '~/lib/services/flightService'
 import { FlightDetailCard } from '~/components/flightDetailCard'
-import { useNavigate } from 'react-router'
+import { redirect, useNavigate } from 'react-router'
 import { FlightCardWrapper } from '~/components/flightCardWrapper'
 import { PaginationComponent } from '~/components/paginationComponent'
 import { fromYYMMDD, yyMMddToISO } from '~/lib/utils'
@@ -48,7 +48,7 @@ export const loader = async ({
     }
   } catch (error) {
     console.error('Error fetching flights:', error)
-    throw error
+    return redirect('/error')
   }
 }
 

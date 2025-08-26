@@ -7,4 +7,5 @@ export default [
     'routes/flightBooking.tsx',
   ),
   route('flights/:source/:destination/:dep/:arr?', 'routes/flights.tsx'),
+  route('error', 'routes/error.tsx'),
 ] satisfies RouteConfig
