@@ -9,8 +9,8 @@ import {
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Separator } from './ui/separator'
-
-export type TripType = 'one-way' | 'roundtrip'
+import type { TFlight, TTripTypeData } from '~/lib/types'
+import { isoToHHMM, isoToYYMMDD, yyMMddToISO } from '~/lib/utils'
 
 // Reusable detail row component
 function DetailRow({
@@ -28,31 +28,29 @@ function DetailRow({
   )
 }
 
-export const FlightSummary = ({ type }: { type: TripType }) => {
+export const FlightSummary = ({
+  tripType,
+  flightNumber,
+  departure,
+  arrival,
+  destination,
+  source,
+  price,
+  totalPrice,
+  currency,
+}: Partial<TFlight> & TTripTypeData & { totalPrice?: number }) => {
   return (
     <Card className="rounded-2xl shadow-sm">
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
           <Plane className="h-5 w-5" />
           <CardTitle className="text-base">
-            Selected Flight {type === 'roundtrip' ? '(Roundtrip)' : '(One‑Way)'}
+            {flightNumber}{' '}
+            {tripType === 'round-trip' ? '(Roundtrip)' : '(One‑Way)'}
           </CardTitle>
         </div>
-        <div className="flex flex-wrap items-center gap-2 mt-2">
-          <Badge>
-            Airline: Test <span className="ml-1 font-semibold">—</span>
-          </Badge>
-          <Badge>
-            Flight No: <span className="ml-1 font-semibold">—</span>
-          </Badge>
-          <Badge className="flex items-center gap-1">
-            <Clock className="h-3.5 w-3.5" /> Duration: —
-          </Badge>
-          <Badge className="flex items-center gap-1">
-            <DollarSign className="h-3.5 w-3.5" /> Price: —
-          </Badge>
-        </div>
       </CardHeader>
+
       <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Departure */}
         <div className="p-3 rounded-xl bg-muted/40">
@@ -65,11 +63,15 @@ export const FlightSummary = ({ type }: { type: TripType }) => {
             label="Date"
             value={
               <span className="inline-flex items-center gap-1">
-                <Calendar className="h-3.5 w-3.5" /> —
+                <Calendar className="h-3.5 w-3.5" />{' '}
+                {departure ? isoToYYMMDD(departure) : '—'}
               </span>
             }
           />
-          <DetailRow label="Time" value="—" />
+          <DetailRow
+            label="Time"
+            value={departure ? isoToHHMM(departure) : '-'}
+          />
         </div>
         {/* Arrival */}
         <div className="p-3 rounded-xl bg-muted/40">
@@ -77,16 +79,17 @@ export const FlightSummary = ({ type }: { type: TripType }) => {
             <ArrowLeftRight className="h-4 w-4" /> Arrival
           </div>
           <Separator className="my-2" />
-          <DetailRow label="Airport" value="—" />
+          <DetailRow label="Airport" value={destination || ''} />
           <DetailRow
             label="Date"
             value={
               <span className="inline-flex items-center gap-1">
-                <Calendar className="h-3.5 w-3.5" /> —
+                <Calendar className="h-3.5 w-3.5" />
+                {arrival ? isoToYYMMDD(arrival) : '—'}
               </span>
             }
           />
-          <DetailRow label="Time" value="—" />
+          value={arrival ? isoToHHMM(arrival) : '-'}
         </div>
         {/* Price / Fare */}
         <div className="p-3 rounded-xl bg-muted/40">
@@ -94,12 +97,16 @@ export const FlightSummary = ({ type }: { type: TripType }) => {
             <DollarSign className="h-4 w-4" /> Fare
           </div>
           <Separator className="my-2" />
-          <DetailRow label="Ticket Price" value="—" />
-          <DetailRow label="Taxes & Fees" value="—" />
+          <DetailRow label="Ticket Price" value={price || '-'} />
+          <DetailRow label="Currency" value={currency || '-'} />
           <Separator className="my-2" />
           <DetailRow
             label="Total"
-            value={<span className="text-base font-semibold">—</span>}
+            value={
+              <span className="text-base font-semibold">
+                {totalPrice || price}
+              </span>
+            }
           />
         </div>
       </CardContent>

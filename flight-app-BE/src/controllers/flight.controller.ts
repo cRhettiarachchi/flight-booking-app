@@ -60,13 +60,13 @@ const searchFlights = async (
 }
 
 const getFlightById = async (
-  req: Request<{ id: string }>,
+  req: Request<{ sourceId: string; destinationId?: string }>,
   res: Response,
 ): Promise<void> => {
   try {
-    const { id } = req.params
+    const { sourceId } = req.params
 
-    if (!id) {
+    if (!sourceId) {
       res.status(400).json({
         error: 'Flight ID is required',
         code: 'MISSING_FLIGHT_ID',
@@ -74,9 +74,11 @@ const getFlightById = async (
       return
     }
 
-    const flight = await flightService.getFlightById(id)
+    const sourceFlight = await flightService.getFlightById(sourceId)
 
-    if (!flight) {
+    let destinationFlight = null
+
+    if (!sourceFlight) {
       res.status(404).json({
         error: 'Flight not found',
         code: 'FLIGHT_NOT_FOUND',
@@ -84,8 +86,35 @@ const getFlightById = async (
       return
     }
 
+    if (req.params.destinationId) {
+      destinationFlight = await flightService.getFlightById(
+        req.params.destinationId,
+      )
+      if (!destinationFlight) {
+        res.status(404).json({
+          error: 'Return flight not found',
+          code: 'RETURN_FLIGHT_NOT_FOUND',
+        })
+        return
+      }
+    }
+
+    const getDestinationData = () => {
+      if (destinationFlight === null) return {}
+      return {
+        ...(destinationFlight ? { return: destinationFlight } : {}),
+
+        totalPrice: sourceFlight.price + destinationFlight.price,
+        totalDuration: `${sourceFlight.duration} + ${destinationFlight.duration}`,
+      }
+    }
+
     res.status(200).json({
-      data: flight,
+      data: {
+        tripType: destinationFlight ? 'round-trip' : 'one-way',
+        outbound: sourceFlight,
+        ...getDestinationData(),
+      },
     })
   } catch (error) {
     if (error instanceof Error) {

@@ -6,11 +6,13 @@ export const FlightCardWrapper = ({
   airline,
   price,
   currency,
+  onFlightSelect,
 }: {
   children: React.ReactNode
   airline?: string
   price?: number
   currency?: string
+  onFlightSelect: () => void
 }) => {
   return (
     <Card className="flex flex-col md:flex-row items-stretch justify-between rounded-xl shadow-sm p-0 border bg-muted/40 w-full">
@@ -26,7 +28,11 @@ export const FlightCardWrapper = ({
             </span>
           </div>
           <div className="flex items-center gap-2 mt-2 md:mt-0">
-            <Button className="font-semibold" size="sm">
+            <Button
+              onClick={onFlightSelect}
+              className="font-semibold cursor-pointer"
+              size="sm"
+            >
               Select
             </Button>
           </div>

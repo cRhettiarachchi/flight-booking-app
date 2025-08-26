@@ -18,10 +18,8 @@ export const loader = async ({
   params: { source, destination, dep, arr },
   request,
 }: Route.LoaderArgs) => {
-  console.log('Flights loader', { source, destination, dep, arr })
   const url = new URL(request.url)
   const searchParams = url.searchParams
-  console.log('Search params:', searchParams.get('page'))
 
   const limit = Number(searchParams.get('limit')) || 10
   const page = Number(searchParams.get('page')) || 1
@@ -143,6 +141,22 @@ const Flights = ({ loaderData }: Route.ComponentProps) => {
     navigate(path)
   }
 
+  const navigateToBooking = (flight: TFlight | TFlightPair) => {
+    let path = `/flights/booking`
+
+    if (tripType === 'one-way') {
+      const flightDetail = flight as TFlight
+      path += `/${flightDetail.id}`
+      return navigate(path)
+    }
+    if (tripType === 'round-trip') {
+      const pair = flight as TFlightPair
+      path += `/${pair.outbound.id}/${pair.return.id}`
+    }
+
+    navigate(path)
+  }
+
   return (
     <>
       <FlightSearchBar
@@ -163,8 +177,16 @@ const Flights = ({ loaderData }: Route.ComponentProps) => {
           {data &&
             data.length > 0 &&
             data.map((flight) => (
-              <div className="my-4" key={JSON.stringify(flight)}>
-                <FlightCardWrapper {...getFlightSummary(flight)}>
+              <div
+                role="button"
+                className="cursor-pointer my-4"
+                onClick={() => navigateToBooking(flight)}
+                key={JSON.stringify(flight)}
+              >
+                <FlightCardWrapper
+                  onFlightSelect={() => navigateToBooking(flight)}
+                  {...getFlightSummary(flight)}
+                >
                   {getFlightRender(flight)}
                 </FlightCardWrapper>
               </div>

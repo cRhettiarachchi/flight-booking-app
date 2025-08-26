@@ -19,11 +19,21 @@ router.get(
 )
 
 /**
- * @route   GET /api/flights/:id
- * @desc    Get flight by ID
+ * @route   GET /api/flights/:sourceId
+ * @desc    Get single flight by ID
  * @access  Public
- * @params  id: string (flight ID)
+ * @params  sourceId: string (flight ID)
+ * @returns { data: { source: TFlight } }
  */
-router.get('/:id', flightController.getFlightById)
+router.get('/:sourceId', flightController.getFlightById)
+
+/**
+ * @route   GET /api/flights/:sourceId/:destinationId
+ * @desc    Get flight pair (outbound + return flights)
+ * @access  Public
+ * @params  sourceId: string (outbound flight ID), destinationId: string (return flight ID)
+ * @returns { data: { source: TFlight, destination: TFlight } }
+ */
+router.get('/:sourceId/:destinationId', flightController.getFlightById)
 
 export default router

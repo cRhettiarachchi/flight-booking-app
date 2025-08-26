@@ -1,9 +1,10 @@
 import { fetchApi } from '../api/fetch'
 import { API_ENDPOINTS } from '../config/api'
-import type { 
-  TFlightPaginatedResponse, 
-  TFlight, 
-  TFlightSearchParams 
+import type {
+  TFlightPaginatedResponse,
+  TFlight,
+  TFlightSearchParams,
+  TFlightDetailResponse,
 } from '../types'
 
 /**
@@ -11,26 +12,26 @@ import type {
  */
 const buildFlightSearchQuery = (params: TFlightSearchParams): string => {
   const searchParams = new URLSearchParams()
-  
+
   searchParams.set('source', params.departureAirport.toUpperCase())
   searchParams.set('destination', params.arrivalAirport.toUpperCase())
   searchParams.set('departure', params.departureDate)
-  
+
   if (params.arrivalDate) {
     searchParams.set('return', params.arrivalDate)
   }
-  
+
   searchParams.set('page', String(params.page || 1))
   searchParams.set('limit', String(params.limit || 10))
-  
+
   if (params.sortBy) {
     searchParams.set('sortBy', params.sortBy)
   }
-  
+
   if (params.sortOrder) {
     searchParams.set('sortOrder', params.sortOrder)
   }
-  
+
   return searchParams.toString()
 }
 
@@ -38,21 +39,24 @@ const buildFlightSearchQuery = (params: TFlightSearchParams): string => {
  * Searches for flights based on search parameters
  */
 export const searchFlightResults = async (
-  params: TFlightSearchParams
+  params: TFlightSearchParams,
 ): Promise<TFlightPaginatedResponse> => {
   const queryString = buildFlightSearchQuery(params)
   const url = `${API_ENDPOINTS.flights.search}?${queryString}`
-  
+
   return await fetchApi<TFlightPaginatedResponse>(url)
 }
 
 /**
- * Retrieves a specific flight by its ID
+ * Searches for flights based on search parameters
  */
-export const getFlightDetails = async (flightId: string): Promise<TFlight> => {
-  const url = API_ENDPOINTS.flights.getById(flightId)
-  
-  return await fetchApi<TFlight>(url)
+export const getFlightDetails = async (
+  sourceId: string,
+  destinationId?: string,
+): Promise<TFlightDetailResponse> => {
+  const url = API_ENDPOINTS.flights.getById(sourceId, destinationId)
+
+  return await fetchApi<TFlightDetailResponse>(url)
 }
 
 /**

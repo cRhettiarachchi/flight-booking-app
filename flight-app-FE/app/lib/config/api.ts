@@ -3,7 +3,8 @@ const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001/api'
 export const API_ENDPOINTS = {
   flights: {
     search: `${API_BASE_URL}/flights/search`,
-    getById: (id: string) => `${API_BASE_URL}/flights/${id}`,
+    getById: (sourceId: string, destinationId?: string) =>
+      `${API_BASE_URL}/flights/${sourceId}${destinationId ? `/${destinationId}` : ''}`,
   },
 } as const
 

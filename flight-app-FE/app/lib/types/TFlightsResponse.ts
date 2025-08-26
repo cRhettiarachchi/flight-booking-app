@@ -1,4 +1,4 @@
-import type { TPaginatedDataResponse } from './TResponse'
+import type { TDataResponse, TPaginatedDataResponse } from './TResponse'
 
 export interface TFlight {
   id: string
@@ -24,6 +24,18 @@ export interface TFlightPair {
   pairId: string
 }
 
+export type TTripTypeData = { tripType: 'one-way' | 'round-trip' }
+
 export type TFlightPaginatedResponse = TPaginatedDataResponse<
   TFlight[] | TFlightPair[]
-> & { tripType: 'one-way' | 'round-trip' }
+> &
+  TTripTypeData
+
+export type TFlightDetailResponse = TDataResponse<
+  {
+    outbound: TFlight
+    return?: TFlight
+    totalPrice: number
+    totalDuration: string
+  } & TTripTypeData
+>
